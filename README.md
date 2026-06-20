@@ -63,6 +63,8 @@ sqlite3 db/sales_orders.db "SELECT COUNT(*) FROM sales;"
 
 ## ขั้นตอนที่ 2: ติดตั้ง MCP Toolbox
 
+คู่มือติดตั้งและรัน Toolbox server: [Install & Run the Toolbox Server](https://github.com/googleapis/mcp-toolbox#install--run-the-toolbox-server)
+
 เลือกวิธีใดวิธีหนึ่ง:
 
 ### วิธี A: Homebrew (แนะนำบน macOS)
@@ -321,6 +323,7 @@ general_settings:
 
 ## อ้างอิง
 
+- [Install & Run the Toolbox Server](https://github.com/googleapis/mcp-toolbox#install--run-the-toolbox-server)
 - [MCP Toolbox for Databases](https://mcp-toolbox.dev/)
 - [Prebuilt Configs](https://mcp-toolbox.dev/documentation/configuration/prebuilt-configs/)
 - [SQLite + MCP Guide](https://mcp-toolbox.dev/dev/documentation/connect-to/ides/sqlite_mcp/)

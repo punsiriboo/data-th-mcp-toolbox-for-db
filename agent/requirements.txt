@@ -1,1 +1,1 @@
-google-adk[toolbox]>=1.25.0
+google-adk[mcp]>=1.25.0

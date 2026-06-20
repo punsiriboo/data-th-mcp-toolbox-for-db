@@ -1,12 +1,26 @@
 import os
+from pathlib import Path
 
 from google.adk import Agent
-from google.adk.tools.toolbox_toolset import ToolboxToolset
+from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
+from mcp import StdioServerParameters
 
-TOOLBOX_URL = os.getenv("TOOLBOX_URL", "http://127.0.0.1:5000")
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = os.getenv("SQLITE_DATABASE", str(PROJECT_DIR / "db" / "sales_orders.db"))
 AGENT_MODEL = os.getenv("AGENT_MODEL", "gemini-2.5-flash")
+TOOLBOX_COMMAND = os.getenv("TOOLBOX_COMMAND", "toolbox")
 
-toolset = ToolboxToolset(server_url=TOOLBOX_URL)
+toolset = McpToolset(
+    connection_params=StdioConnectionParams(
+        server_params=StdioServerParameters(
+            command=TOOLBOX_COMMAND,
+            args=["--stdio", "--prebuilt", "sqlite"],
+            env={**os.environ, "SQLITE_DATABASE": DB_PATH},
+            cwd=str(PROJECT_DIR),
+        ),
+    ),
+)
 
 INSTRUCTION = """
 You are a data analyst assistant connected to a SQLite retail database via MCP Toolbox.
