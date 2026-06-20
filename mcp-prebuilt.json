@@ -4,7 +4,7 @@
       "command": "toolbox",
       "args": ["--stdio", "--prebuilt", "sqlite"],
       "env": {
-        "SQLITE_DATABASE": "./sales_orders.db"
+        "SQLITE_DATABASE": "./db/sales_orders.db"
       }
     }
   }

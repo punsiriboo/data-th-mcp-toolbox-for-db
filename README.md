@@ -7,17 +7,16 @@
 
 ```
 mcp-toolbox-db/
-├── litellm.db              # ไฟล์ฐานข้อมูล SQLite (สร้างจาก init_db.sh)
-├── schema.sql              # โครงสร้างตาราง
-├── seed.sql                # ข้อมูลตัวอย่าง
-├── init_db.sh              # สคริปต์สร้าง/รีเซ็ตฐานข้อมูล
-├── tools.yaml              # Custom MCP tools (list-customers, list-sales, ...)
-├── mcp-prebuilt.json       # MCP config — prebuilt เท่านั้น
-├── mcp-combined.json       # MCP config — prebuilt + custom (ต้องใช้ toolbox 1.4.0+)
-├── start-prebuilt.sh       # รัน HTTP server แบบ prebuilt
-├── start-combined.sh       # รัน HTTP server แบบ prebuilt + custom
-├── .cursor/mcp.json        # Cursor: prebuilt + custom servers
-├── .cursor/mcp-prebuilt.json  # Cursor: prebuilt เท่านั้น
+├── db/
+│   ├── sales_orders.db     # SQLite (สร้างจาก db/init_db.sh)
+│   ├── schema.sql
+│   ├── seed.sql
+│   └── init_db.sh
+├── tools.yaml              # Custom MCP tools
+├── tools-custom.yaml       # Custom tools ชุดเต็ม
+├── mcp-prebuilt.json       # MCP config — prebuilt
+├── mcp-combined.json       # MCP config — prebuilt + custom
+├── start-prebuilt.sh       # รัน HTTP server
 └── README.md
 ```
 
@@ -43,10 +42,10 @@ mcp-toolbox-db/
 
 ```bash
 cd mcp-toolbox-db
-./init_db.sh
+./db/init_db.sh
 ```
 
-สคริปต์จะสร้างไฟล์ `litellm.db` พร้อมข้อมูลตัวอย่าง:
+สคริปต์จะสร้างไฟล์ `db/sales_orders.db` พร้อมข้อมูลตัวอย่าง:
 
 - ลูกค้า 5 ราย
 - สินค้า 8 รายการ
@@ -56,8 +55,8 @@ cd mcp-toolbox-db
 ตรวจสอบว่าสร้างสำเร็จ:
 
 ```bash
-sqlite3 litellm.db ".tables"
-sqlite3 litellm.db "SELECT COUNT(*) FROM sales;"
+sqlite3 db/sales_orders.db ".tables"
+sqlite3 db/sales_orders.db "SELECT COUNT(*) FROM sales;"
 ```
 
 ---
@@ -114,7 +113,7 @@ chmod +x toolbox
 **stdio (Cursor / Claude):**
 
 ```bash
-SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite
+SQLITE_DATABASE=./db/sales_orders.db toolbox --stdio --prebuilt sqlite
 ```
 
 **HTTP server:**
@@ -138,7 +137,7 @@ toolbox --config ./tools.yaml
 ได้ทั้ง `list_tables` / `execute_sql` และ custom tools พร้อมกัน:
 
 ```bash
-SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite --config ./tools.yaml
+SQLITE_DATABASE=./db/sales_orders.db toolbox --stdio --prebuilt sqlite --config ./tools.yaml
 # หรือ
 ./start-combined.sh
 ```
@@ -157,7 +156,7 @@ SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite --config ./tools.
     "litellm-db-prebuilt": {
       "command": "toolbox",
       "args": ["--stdio", "--prebuilt", "sqlite"],
-      "env": { "SQLITE_DATABASE": "./litellm.db" },
+      "env": { "SQLITE_DATABASE": "./db/sales_orders.db" },
       "cwd": "${workspaceFolder}"
     },
     "litellm-db-custom": {
@@ -182,7 +181,7 @@ SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite --config ./tools.
     "litellm-db-prebuilt": {
       "command": "toolbox",
       "args": ["--stdio", "--prebuilt", "sqlite"],
-      "env": { "SQLITE_DATABASE": "./litellm.db" }
+      "env": { "SQLITE_DATABASE": "./db/sales_orders.db" }
     }
   }
 }
@@ -196,7 +195,7 @@ SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite --config ./tools.
     "litellm-db": {
       "command": "toolbox",
       "args": ["--stdio", "--prebuilt", "sqlite", "--config", "./tools.yaml"],
-      "env": { "SQLITE_DATABASE": "./litellm.db" }
+      "env": { "SQLITE_DATABASE": "./db/sales_orders.db" }
     }
   }
 }
@@ -282,7 +281,7 @@ general_settings:
     "litellm-db-prebuilt": {
       "command": "toolbox",
       "args": ["--stdio", "--prebuilt", "sqlite"],
-      "env": { "SQLITE_DATABASE": "./litellm.db" }
+      "env": { "SQLITE_DATABASE": "./db/sales_orders.db" }
     }
   }
 }
@@ -296,7 +295,7 @@ general_settings:
     "litellm-db-prebuilt": {
       "command": "toolbox",
       "args": ["--stdio", "--prebuilt", "sqlite"],
-      "env": { "SQLITE_DATABASE": "./litellm.db" }
+      "env": { "SQLITE_DATABASE": "./db/sales_orders.db" }
     }
   }
 }
@@ -309,14 +308,14 @@ general_settings:
 | ปัญหา | วิธีแก้ |
 |-------|--------|
 | MCP server ไม่ active | ตรวจว่า `toolbox` อยู่ใน PATH (`which toolbox`) หรือใช้ path เต็มใน `mcp.json` |
-| ไม่พบ `litellm.db` | รัน `./init_db.sh` ก่อน |
-| `permission denied` | รัน `chmod +x init_db.sh start-prebuilt.sh start-combined.sh` |
+| ไม่พบ `db/sales_orders.db` | รัน `./db/init_db.sh` ก่อน |
+| `permission denied` | รัน `chmod +x db/init_db.sh start-prebuilt.sh` |
 | Custom tools ไม่ทำงาน | อัปเกรด: `brew upgrade mcp-toolbox` แล้วใช้ `--config` (ไม่ใช่ `--tools-file`) |
-| Prebuilt ไม่เจอ database | ตั้ง `SQLITE_DATABASE=./litellm.db` ก่อนรัน หรือใช้ `./start-prebuilt.sh` |
+| Prebuilt ไม่เจอ database | ตั้ง `SQLITE_DATABASE=./db/sales_orders.db` ก่อนรัน หรือใช้ `./start-prebuilt.sh` |
 | เข้า `/ui` แล้วได้ 403 | port 5000 บน macOS ถูก AirPlay ใช้ — รัน `PORT=8080 ./start-prebuilt.sh --ui` หรือปิด AirPlay Receiver |
 | UI ไม่ขึ้น | ต้องใส่ flag `--ui` ตอน start server |
-| Tool ไม่ขึ้นใน Cursor | Reload window, ทดสอบด้วย `SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite` |
-| ต้องการข้อมูลใหม่ | แก้ `seed.sql` แล้วรัน `./init_db.sh` อีกครั้ง |
+| Tool ไม่ขึ้นใน Cursor | Reload window, ทดสอบด้วย `SQLITE_DATABASE=./db/sales_orders.db toolbox --stdio --prebuilt sqlite` |
+| ต้องการข้อมูลใหม่ | แก้ `db/seed.sql` แล้วรัน `./db/init_db.sh` อีกครั้ง |
 
 ---
 

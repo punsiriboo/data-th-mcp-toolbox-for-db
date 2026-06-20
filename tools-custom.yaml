@@ -1,7 +1,7 @@
 sources:
   litellm-db:
     kind: sqlite
-    database: ./sales_orders.db
+    database: ./db/sales_orders.db
 
 tools:
   list-customers:
