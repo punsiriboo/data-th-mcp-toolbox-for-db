@@ -4,27 +4,6 @@ sources:
     database: ./db/sales_orders.db
 
 tools:
-  list-customers:
-    kind: sqlite-sql
-    source: sales-orders-db
-    description: List all customers with contact details.
-    statement: |
-      SELECT customer_id, first_name, last_name, email, phone, city, country, created_at
-      FROM customers
-      ORDER BY customer_id;
-
-  get-customer-by-id:
-    kind: sqlite-sql
-    source: sales-orders-db
-    description: Get a single customer by customer_id.
-    parameters:
-      - name: customer_id
-        type: integer
-        description: The customer ID to look up.
-    statement: |
-      SELECT customer_id, first_name, last_name, email, phone, address, city, country, created_at
-      FROM customers
-      WHERE customer_id = ?;
 
   list-products:
     kind: sqlite-sql
@@ -178,8 +157,3 @@ tools:
       FROM sales s
       GROUP BY sales_month
       ORDER BY sales_month;
-
-  execute-sql:
-    kind: sqlite-execute-sql
-    source: sales-orders-db
-    description: Execute a SQL statement against the LiteLLM database.
