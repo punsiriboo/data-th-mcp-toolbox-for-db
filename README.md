@@ -8,15 +8,15 @@
 ```
 mcp-toolbox-db/
 ├── db/
-│   ├── sales_orders.db     # SQLite (สร้างจาก db/init_db.sh)
-│   ├── schema.sql
-│   ├── seed.sql
-│   └── init_db.sh
-├── tools.yaml              # Custom MCP tools
-├── tools-custom.yaml       # Custom tools ชุดเต็ม
+│   ├── sales_orders.db     # SQLite พร้อมข้อมูลตัวอย่าง
+│   └── schema.sql
+├── agent/                  # Google ADK agent (stdio MCP)
+│   ├── agent.py
+│   └── requirements.txt
 ├── mcp-prebuilt.json       # MCP config — prebuilt
-├── mcp-combined.json       # MCP config — prebuilt + custom
-├── start-prebuilt.sh       # รัน HTTP server
+├── mcp-custom.json         # MCP config — custom tools
+├── start-prebuilt.sh       # รัน HTTP server (prebuilt)
+├── start-custom.sh         # รัน HTTP server (custom tools)
 └── README.md
 ```
 
@@ -31,37 +31,23 @@ mcp-toolbox-db/
 
 ความสัมพันธ์: `customers` → `orders` → `sales` ← `products`
 
-## ความต้องการของระบบ
-
-- [SQLite](https://www.sqlite.org/) (`sqlite3` CLI) — มีอยู่แล้วบน macOS ส่วนใหญ่
-- [MCP Toolbox](https://mcp-toolbox.dev/) เวอร์ชัน **1.4.0+** (แนะนำ 1.5.0)
-
----
-
-## ขั้นตอนที่ 1: สร้างฐานข้อมูล
-
-```bash
-cd mcp-toolbox-db
-./db/init_db.sh
-```
-
-สคริปต์จะสร้างไฟล์ `db/sales_orders.db` พร้อมข้อมูลตัวอย่าง:
+ข้อมูลตัวอย่างใน `db/sales_orders.db`:
 
 - ลูกค้า 5 ราย
 - สินค้า 8 รายการ
 - คำสั่งซื้อ 19 รายการ
 - ยอดขาย 51 รายการ (พ.ย. 2024 – มิ.ย. 2025)
 
-ตรวจสอบว่าสร้างสำเร็จ:
+## ความต้องการของระบบ
 
-```bash
-sqlite3 db/sales_orders.db ".tables"
-sqlite3 db/sales_orders.db "SELECT COUNT(*) FROM sales;"
-```
+- [SQLite](https://www.sqlite.org/) (`sqlite3` CLI) — มีอยู่แล้วบน macOS ส่วนใหญ่
+- [MCP Toolbox](https://mcp-toolbox.dev/) เวอร์ชัน **1.4.0+** (แนะนำ 1.5.0)
+- Python 3.10+ (สำหรับ ADK agent)
+- [Google AI API key](https://aistudio.google.com/apikey) (สำหรับ ADK agent)
 
 ---
 
-## ขั้นตอนที่ 2: ติดตั้ง MCP Toolbox
+## ขั้นตอนที่ 1: ติดตั้ง MCP Toolbox
 
 คู่มือติดตั้งและรัน Toolbox server: [Install & Run the Toolbox Server](https://github.com/googleapis/mcp-toolbox#install--run-the-toolbox-server)
 
@@ -99,7 +85,7 @@ chmod +x toolbox
 
 ---
 
-## ขั้นตอนที่ 3: เริ่ม MCP Toolbox
+## ขั้นตอนที่ 2: เริ่ม MCP Toolbox
 
 เลือกได้ 3 แบบ:
 
@@ -125,13 +111,21 @@ SQLITE_DATABASE=./db/sales_orders.db toolbox --stdio --prebuilt sqlite
 ./start-prebuilt.sh --ui  # + UI at /ui
 ```
 
-### แบบ 2: Custom tools (`tools.yaml`)
+### แบบ 2: Custom tools (`db/tools.yaml`)
 
 ใช้ tools ที่กำหนดเอง เช่น `list-customers`, `sales-summary-by-month`
 
+**stdio (Cursor / Claude):**
+
 ```bash
-toolbox --config ./tools.yaml
-# หรือรัน `toolbox` ในโฟลเดอร์โปรเจกต์ (โหลด tools.yaml อัตโนมัติ)
+toolbox --stdio --config ./db/tools.yaml
+```
+
+**HTTP server:**
+
+```bash
+./start-custom.sh       # http://127.0.0.1:5000
+./start-custom.sh --ui  # + UI at /ui
 ```
 
 ### แบบ 3: Prebuilt + Custom รวมกัน (toolbox 1.4.0+)
@@ -146,7 +140,7 @@ SQLITE_DATABASE=./db/sales_orders.db toolbox --stdio --prebuilt sqlite --config 
 
 ---
 
-## ขั้นตอนที่ 4: ตั้งค่า Cursor
+## ขั้นตอนที่ 3: ตั้งค่า Cursor
 
 โปรเจกต์มี MCP config หลายแบบให้เลือก:
 
@@ -212,7 +206,7 @@ SQLITE_DATABASE=./db/sales_orders.db toolbox --stdio --prebuilt sqlite --config 
 
 ---
 
-## ขั้นตอนที่ 5: ตั้งค่า LiteLLM (ถ้าใช้)
+## ขั้นตอนที่ 4: ตั้งค่า LiteLLM (ถ้าใช้)
 
 1. เปิด `store_model_in_db` ใน LiteLLM config:
 
@@ -233,6 +227,28 @@ general_settings:
 4. ใส่ URL ของ Toolbox เช่น `http://127.0.0.1:5000/mcp`
 
 อ่านเพิ่มเติม: [LiteLLM MCP Documentation](https://docs.litellm.ai/docs/mcp)
+
+---
+
+## ขั้นตอนที่ 5: รัน Agent ด้วย ADK Web
+
+Agent ในโฟลเดอร์ `agent/` ใช้ [Google ADK](https://google.github.io/adk-docs/) เชื่อมต่อฐานข้อมูลผ่าน MCP Toolbox แบบ stdio — **ไม่ต้องรัน** `./start-prebuilt.sh` ก่อน
+
+```bash
+cd mcp-toolbox-db
+python3 -m venv agent/.venv
+source agent/.venv/bin/activate
+pip install -r agent/requirements.txt
+
+cp agent/.env.example agent/.env
+# แก้ agent/.env ใส่ GOOGLE_API_KEY
+
+adk web .
+```
+
+เปิดเบราว์เซอร์ที่ **http://127.0.0.1:8000** แล้วเลือก agent `agent` เพื่อถามข้อมูล เช่น "แสดงยอดขายเดือนมีนาคม 2025"
+
+> ต้องติดตั้ง `toolbox` ใน PATH แล้ว (ขั้นตอนที่ 1) — agent จะ spawn `toolbox --stdio --prebuilt sqlite` ให้อัตโนมัติ
 
 ---
 
@@ -275,7 +291,7 @@ general_settings:
 
 ### Claude Desktop / Claude Code
 
-ใช้ `mcp-prebuilt.json` (prebuilt) หรือ `mcp-combined.json` (prebuilt + custom):
+ใช้ `mcp-prebuilt.json` (prebuilt) หรือ `mcp-custom.json` (prebuilt + custom):
 
 ```json
 {
@@ -303,21 +319,7 @@ general_settings:
 }
 ```
 
----
 
-## แก้ไขปัญหา
-
-| ปัญหา | วิธีแก้ |
-|-------|--------|
-| MCP server ไม่ active | ตรวจว่า `toolbox` อยู่ใน PATH (`which toolbox`) หรือใช้ path เต็มใน `mcp.json` |
-| ไม่พบ `db/sales_orders.db` | รัน `./db/init_db.sh` ก่อน |
-| `permission denied` | รัน `chmod +x db/init_db.sh start-prebuilt.sh` |
-| Custom tools ไม่ทำงาน | อัปเกรด: `brew upgrade mcp-toolbox` แล้วใช้ `--config` (ไม่ใช่ `--tools-file`) |
-| Prebuilt ไม่เจอ database | ตั้ง `SQLITE_DATABASE=./db/sales_orders.db` ก่อนรัน หรือใช้ `./start-prebuilt.sh` |
-| เข้า `/ui` แล้วได้ 403 | port 5000 บน macOS ถูก AirPlay ใช้ — รัน `PORT=8080 ./start-prebuilt.sh --ui` หรือปิด AirPlay Receiver |
-| UI ไม่ขึ้น | ต้องใส่ flag `--ui` ตอน start server |
-| Tool ไม่ขึ้นใน Cursor | Reload window, ทดสอบด้วย `SQLITE_DATABASE=./db/sales_orders.db toolbox --stdio --prebuilt sqlite` |
-| ต้องการข้อมูลใหม่ | แก้ `db/seed.sql` แล้วรัน `./db/init_db.sh` อีกครั้ง |
 
 ---
 
@@ -329,3 +331,4 @@ general_settings:
 - [SQLite + MCP Guide](https://mcp-toolbox.dev/dev/documentation/connect-to/ides/sqlite_mcp/)
 - [Configuration (tools.yaml)](https://mcp-toolbox.dev/documentation/configuration/)
 - [LiteLLM MCP](https://docs.litellm.ai/docs/mcp)
+- [Google ADK](https://google.github.io/adk-docs/)

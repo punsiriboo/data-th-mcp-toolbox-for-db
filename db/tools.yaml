@@ -1,12 +1,12 @@
 sources:
-  litellm-db:
+  sales-orders-db:
     kind: sqlite
     database: ./db/sales_orders.db
 
 tools:
   list-customers:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: List all customers with contact details.
     statement: |
       SELECT customer_id, first_name, last_name, email, phone, city, country, created_at
@@ -15,7 +15,7 @@ tools:
 
   get-customer-by-id:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Get a single customer by customer_id.
     parameters:
       - name: customer_id
@@ -28,7 +28,7 @@ tools:
 
   list-products:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: List all products with price and stock.
     statement: |
       SELECT product_id, name, description, category, unit_price, stock_quantity, created_at
@@ -37,7 +37,7 @@ tools:
 
   search-products-by-category:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Search products by category name.
     parameters:
       - name: category
@@ -51,7 +51,7 @@ tools:
 
   list-orders:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: List all orders with customer name and order status.
     statement: |
       SELECT
@@ -68,7 +68,7 @@ tools:
 
   get-customer-orders:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Get all orders for a specific customer.
     parameters:
       - name: customer_id
@@ -82,7 +82,7 @@ tools:
 
   list-sales:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: List all sales line items with product and order details.
     statement: |
       SELECT
@@ -101,7 +101,7 @@ tools:
 
   get-order-sales:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Get all sales line items for a specific order.
     parameters:
       - name: order_id
@@ -124,7 +124,7 @@ tools:
 
   sales-summary-by-product:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Summarize total quantity sold and revenue per product.
     statement: |
       SELECT
@@ -140,7 +140,7 @@ tools:
 
   get-sales-by-date-range:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Get sales within a date range (inclusive). Dates in YYYY-MM-DD format.
     parameters:
       - name: start_date
@@ -167,7 +167,7 @@ tools:
 
   sales-summary-by-month:
     kind: sqlite-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Summarize total sales quantity and revenue grouped by month.
     statement: |
       SELECT
@@ -181,5 +181,5 @@ tools:
 
   execute-sql:
     kind: sqlite-execute-sql
-    source: litellm-db
+    source: sales-orders-db
     description: Execute a SQL statement against the LiteLLM database.
