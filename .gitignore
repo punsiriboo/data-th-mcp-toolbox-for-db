@@ -1,1 +1,5 @@
 litellm.db
+sales_orders.db
+agent/.venv/
+agent/.env
+.cursor/
