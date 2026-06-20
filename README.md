@@ -120,22 +120,9 @@ SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite
 **HTTP server:**
 
 ```bash
-./start-prebuilt.sh              # http://127.0.0.1:8080
-./start-prebuilt.sh --ui         # + Toolbox UI at /ui
-PORT=5001 ./start-prebuilt.sh --ui
+./start-prebuilt.sh       # http://127.0.0.1:5000
+./start-prebuilt.sh --ui  # + UI at /ui
 ```
-
-> **macOS:** port 5000 มักถูก AirPlay Receiver ใช้อยู่ — ถ้าเข้า `/ui` แล้วได้ 403 ให้เปลี่ยน port หรือปิด AirPlay ใน System Settings → General → AirDrop & Handoff → AirPlay Receiver
-
-```bash
-SQLITE_DATABASE=./litellm.db toolbox --prebuilt sqlite --port 8080 --ui
-```
-
-**Environment variable ที่ต้องตั้ง:**
-
-| Variable | ค่า |
-|----------|-----|
-| `SQLITE_DATABASE` | `./litellm.db` |
 
 ### แบบ 2: Custom tools (`tools.yaml`)
 
@@ -242,7 +229,7 @@ general_settings:
 ```
 
 3. ใน LiteLLM UI ไปที่ **MCP Servers → Add New MCP Server**
-4. ใส่ URL ของ Toolbox เช่น `http://127.0.0.1:8080/mcp`
+4. ใส่ URL ของ Toolbox เช่น `http://127.0.0.1:5000/mcp`
 
 อ่านเพิ่มเติม: [LiteLLM MCP Documentation](https://docs.litellm.ai/docs/mcp)
 
@@ -326,7 +313,7 @@ general_settings:
 | `permission denied` | รัน `chmod +x init_db.sh start-prebuilt.sh start-combined.sh` |
 | Custom tools ไม่ทำงาน | อัปเกรด: `brew upgrade mcp-toolbox` แล้วใช้ `--config` (ไม่ใช่ `--tools-file`) |
 | Prebuilt ไม่เจอ database | ตั้ง `SQLITE_DATABASE=./litellm.db` ก่อนรัน หรือใช้ `./start-prebuilt.sh` |
-| เข้า `/ui` แล้วได้ 403 | port 5000 บน macOS ถูก AirPlay ใช้ — รัน `./start-prebuilt.sh --ui` (port 8080) แทน |
+| เข้า `/ui` แล้วได้ 403 | port 5000 บน macOS ถูก AirPlay ใช้ — รัน `PORT=8080 ./start-prebuilt.sh --ui` หรือปิด AirPlay Receiver |
 | UI ไม่ขึ้น | ต้องใส่ flag `--ui` ตอน start server |
 | Tool ไม่ขึ้นใน Cursor | Reload window, ทดสอบด้วย `SQLITE_DATABASE=./litellm.db toolbox --stdio --prebuilt sqlite` |
 | ต้องการข้อมูลใหม่ | แก้ `seed.sql` แล้วรัน `./init_db.sh` อีกครั้ง |
