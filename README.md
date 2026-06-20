@@ -50,37 +50,6 @@ mcp-toolbox-db/
 ## ขั้นตอนที่ 1: ติดตั้ง MCP Toolbox
 
 คู่มือติดตั้งและรัน Toolbox server: [Install & Run the Toolbox Server](https://github.com/googleapis/mcp-toolbox#install--run-the-toolbox-server)
-
-เลือกวิธีใดวิธีหนึ่ง:
-
-### วิธี A: Homebrew (แนะนำบน macOS)
-
-```bash
-brew update
-brew upgrade mcp-toolbox
-toolbox --version   # ควรได้ 1.5.0 ขึ้นไป
-```
-
-### วิธี B: ดาวน์โหลด binary ไว้ในโปรเจกต์
-
-**Apple Silicon (M1/M2/M3):**
-
-```bash
-export VERSION=1.5.0
-curl -L -o toolbox "https://storage.googleapis.com/mcp-toolbox-for-databases/v${VERSION}/darwin/arm64/toolbox"
-chmod +x toolbox
-./toolbox --version
-```
-
-**Intel Mac:**
-
-```bash
-export VERSION=1.5.0
-curl -L -o toolbox "https://storage.googleapis.com/mcp-toolbox-for-databases/v${VERSION}/darwin/amd64/toolbox"
-chmod +x toolbox
-./toolbox --version
-```
-
 > ดูเวอร์ชันล่าสุดได้ที่ [GitHub Releases](https://github.com/googleapis/mcp-toolbox/releases)
 
 ---

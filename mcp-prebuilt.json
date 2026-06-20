@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "litellm-db-prebuilt": {
+    "sales-orders-db-prebuilt": {
       "command": "toolbox",
       "args": ["--stdio", "--prebuilt", "sqlite"],
       "env": {
