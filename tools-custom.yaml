@@ -1,0 +1,185 @@
+sources:
+  litellm-db:
+    kind: sqlite
+    database: ./sales_orders.db
+
+tools:
+  list-customers:
+    kind: sqlite-sql
+    source: litellm-db
+    description: List all customers with contact details.
+    statement: |
+      SELECT customer_id, first_name, last_name, email, phone, city, country, created_at
+      FROM customers
+      ORDER BY customer_id;
+
+  get-customer-by-id:
+    kind: sqlite-sql
+    source: litellm-db
+    description: Get a single customer by customer_id.
+    parameters:
+      - name: customer_id
+        type: integer
+        description: The customer ID to look up.
+    statement: |
+      SELECT customer_id, first_name, last_name, email, phone, address, city, country, created_at
+      FROM customers
+      WHERE customer_id = ?;
+
+  list-products:
+    kind: sqlite-sql
+    source: litellm-db
+    description: List all products with price and stock.
+    statement: |
+      SELECT product_id, name, description, category, unit_price, stock_quantity, created_at
+      FROM products
+      ORDER BY product_id;
+
+  search-products-by-category:
+    kind: sqlite-sql
+    source: litellm-db
+    description: Search products by category name.
+    parameters:
+      - name: category
+        type: string
+        description: Product category to filter by (e.g. Electronics, Stationery, Home).
+    statement: |
+      SELECT product_id, name, description, category, unit_price, stock_quantity
+      FROM products
+      WHERE category = ?
+      ORDER BY name;
+
+  list-orders:
+    kind: sqlite-sql
+    source: litellm-db
+    description: List all orders with customer name and order status.
+    statement: |
+      SELECT
+        o.order_id,
+        o.customer_id,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        o.order_date,
+        o.status,
+        o.total_amount,
+        o.shipping_address
+      FROM orders o
+      JOIN customers c ON c.customer_id = o.customer_id
+      ORDER BY o.order_date DESC;
+
+  get-customer-orders:
+    kind: sqlite-sql
+    source: litellm-db
+    description: Get all orders for a specific customer.
+    parameters:
+      - name: customer_id
+        type: integer
+        description: The customer ID to fetch orders for.
+    statement: |
+      SELECT order_id, order_date, status, total_amount, shipping_address
+      FROM orders
+      WHERE customer_id = ?
+      ORDER BY order_date DESC;
+
+  list-sales:
+    kind: sqlite-sql
+    source: litellm-db
+    description: List all sales line items with product and order details.
+    statement: |
+      SELECT
+        s.sale_id,
+        s.order_id,
+        s.product_id,
+        p.name AS product_name,
+        s.sales_date,
+        s.quantity,
+        s.unit_price,
+        s.discount,
+        s.line_total
+      FROM sales s
+      JOIN products p ON p.product_id = s.product_id
+      ORDER BY s.sales_date DESC;
+
+  get-order-sales:
+    kind: sqlite-sql
+    source: litellm-db
+    description: Get all sales line items for a specific order.
+    parameters:
+      - name: order_id
+        type: integer
+        description: The order ID to fetch sales for.
+    statement: |
+      SELECT
+        s.sale_id,
+        s.product_id,
+        p.name AS product_name,
+        s.sales_date,
+        s.quantity,
+        s.unit_price,
+        s.discount,
+        s.line_total
+      FROM sales s
+      JOIN products p ON p.product_id = s.product_id
+      WHERE s.order_id = ?
+      ORDER BY s.sales_date;
+
+  sales-summary-by-product:
+    kind: sqlite-sql
+    source: litellm-db
+    description: Summarize total quantity sold and revenue per product.
+    statement: |
+      SELECT
+        p.product_id,
+        p.name AS product_name,
+        p.category,
+        SUM(s.quantity) AS total_quantity_sold,
+        ROUND(SUM(s.line_total), 2) AS total_revenue
+      FROM sales s
+      JOIN products p ON p.product_id = s.product_id
+      GROUP BY p.product_id, p.name, p.category
+      ORDER BY total_revenue DESC;
+
+  get-sales-by-date-range:
+    kind: sqlite-sql
+    source: litellm-db
+    description: Get sales within a date range (inclusive). Dates in YYYY-MM-DD format.
+    parameters:
+      - name: start_date
+        type: string
+        description: Start date, e.g. 2025-01-01
+      - name: end_date
+        type: string
+        description: End date, e.g. 2025-03-31
+    statement: |
+      SELECT
+        s.sale_id,
+        s.order_id,
+        s.product_id,
+        p.name AS product_name,
+        s.sales_date,
+        s.quantity,
+        s.unit_price,
+        s.discount,
+        s.line_total
+      FROM sales s
+      JOIN products p ON p.product_id = s.product_id
+      WHERE date(s.sales_date) BETWEEN date(?) AND date(?)
+      ORDER BY s.sales_date;
+
+  sales-summary-by-month:
+    kind: sqlite-sql
+    source: litellm-db
+    description: Summarize total sales quantity and revenue grouped by month.
+    statement: |
+      SELECT
+        strftime('%Y-%m', s.sales_date) AS sales_month,
+        COUNT(s.sale_id) AS total_sales_lines,
+        SUM(s.quantity) AS total_quantity_sold,
+        ROUND(SUM(s.line_total), 2) AS total_revenue
+      FROM sales s
+      GROUP BY sales_month
+      ORDER BY sales_month;
+
+  execute-sql:
+    kind: sqlite-execute-sql
+    source: litellm-db
+    description: Execute a SQL statement against the LiteLLM database.

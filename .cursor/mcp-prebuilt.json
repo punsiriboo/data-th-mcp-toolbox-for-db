@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "litellm-db-prebuilt": {
+      "command": "toolbox",
+      "args": [
+        "--stdio",
+        "--prebuilt",
+        "sqlite"
+      ],
+      "env": {
+        "SQLITE_DATABASE": "/Users/Bopunsiri/my-codespace/mcp-toolbox-db/sales_orders.db"
+      }
+    }
+  }
+}
