@@ -3,3 +3,5 @@ sales_orders.db
 agent/.venv/
 agent/.env
 .cursor/
+__pycache__/
+*.pyc
